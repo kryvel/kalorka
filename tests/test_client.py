@@ -171,7 +171,10 @@ class TestWriters:
         client.add_drink(date="23.05.2026", milliliters=500)
         body = json.loads(mocked_responses.calls[-1].request.body or "{}")
         assert body["multiplier"] == 500
-        assert body["guid"]  # water guid
+        # Stock-food entries use ``guidFoodstuff``, not ``guid``. Sending the
+        # latter makes upstream reject with code 741.
+        assert body["guidFoodstuff"]
+        assert "guid" not in body
 
     def test_add_drink_rejects_zero(self, client: Client) -> None:
         with pytest.raises(ValueError, match="must be > 0"):
@@ -251,6 +254,54 @@ class TestErrorHandling:
         assert diary.total_kcal == 530
         login_calls = [c for c in mocked_responses.calls if "/login/create" in c.request.url]
         assert len(login_calls) >= 1
+
+
+class TestThrottle:
+    def test_throttle_paces_consecutive_requests(
+        self,
+        session_cache: object,
+        stub_login: str,
+        mocked_responses: responses.RequestsMock,
+    ) -> None:
+        # Build a client with a deterministic 0.1s gap (no jitter) so we can
+        # verify the second request is actually delayed.
+        c = Client(
+            email="test@example.com",
+            password=stub_login,
+            session_cache=session_cache,  # type: ignore[arg-type]
+            min_request_interval=0.1,
+            request_jitter=0.0,
+        )
+        mocked_responses.get(_diary_url(), json=load_fixture("diary.json"))
+        mocked_responses.get(_diary_url(), json=load_fixture("diary.json"))
+        import time
+        c.get_diary("23.05.2026")
+        t0 = time.monotonic()
+        c.get_diary("23.05.2026")
+        elapsed = time.monotonic() - t0
+        assert elapsed >= 0.09  # tolerate ~10ms scheduler jitter
+
+    def test_no_delay_before_first_request(
+        self,
+        session_cache: object,
+        stub_login: str,
+        mocked_responses: responses.RequestsMock,
+    ) -> None:
+        # The first call should not pay any throttle - new processes
+        # (e.g. each CLI invocation) shouldn't wait for an idle gap.
+        c = Client(
+            email="test@example.com",
+            password=stub_login,
+            session_cache=session_cache,  # type: ignore[arg-type]
+            min_request_interval=5.0,
+            request_jitter=5.0,
+        )
+        mocked_responses.get(_diary_url(), json=load_fixture("diary.json"))
+        import time
+        t0 = time.monotonic()
+        c.get_diary("23.05.2026")
+        elapsed = time.monotonic() - t0
+        assert elapsed < 1.0
 
 
 class TestSearchShapes:

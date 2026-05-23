@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
+import random
+import time
 from datetime import date as date_cls
 from datetime import datetime, timedelta
 from typing import Any
@@ -14,6 +16,8 @@ from kalorka.const import (
     BASE_URL,
     DEFAULT_TIMEOUT,
     DEFAULT_USER_AGENT,
+    MIN_REQUEST_INTERVAL,
+    REQUEST_JITTER,
     SESSION_TTL_SECONDS,
     WATER_FOODSTUFF_GUID,
 )
@@ -57,6 +61,8 @@ class Client:
         user_agent: str = DEFAULT_USER_AGENT,
         session: requests.Session | None = None,
         session_cache: SessionCache | None = None,
+        min_request_interval: float = MIN_REQUEST_INTERVAL,
+        request_jitter: float = REQUEST_JITTER,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
@@ -75,6 +81,9 @@ class Client:
         )
         self._restore_session()
         self._logged_in_checked = False
+        self._min_request_interval = max(0.0, min_request_interval)
+        self._request_jitter = max(0.0, request_jitter)
+        self._last_request_at: float | None = None
 
     # ----- session management ------------------------------------------------
 
@@ -146,14 +155,30 @@ class Client:
 
     # ----- transport ---------------------------------------------------------
 
+    def _throttle(self) -> None:
+        """Sleep enough to keep consecutive calls humanly spaced.
+
+        Applied only to user-visible API calls (read/write), never the login
+        plumbing - so a single one-shot CLI command pays no delay, but a
+        loop adding several entries gets paced 5-10s apart by default.
+        """
+        if self._last_request_at is None:
+            return
+        elapsed = time.monotonic() - self._last_request_at
+        target = self._min_request_interval + random.uniform(0, self._request_jitter)
+        if elapsed < target:
+            time.sleep(target - elapsed)
+
     def _request(self, method: str, path: str, **kwargs: Any) -> requests.Response:
         self.login()
+        self._throttle()
         url = f"{self.base_url}{path}"
         kwargs.setdefault("timeout", self.timeout)
         kwargs.setdefault("headers", {}).setdefault("X-Requested-With", "XMLHttpRequest")
         # Without this, requests follows the upstream's session-expiry redirect to
         # /login and the retry branch below sees a 200 HTML page instead of a 302.
         kwargs.setdefault("allow_redirects", False)
+        self._last_request_at = time.monotonic()
         r = self._session.request(method, url, **kwargs)
         if r.status_code == 401 or (
             r.status_code in (302, 303) and "/login" in r.headers.get("Location", "")
@@ -286,8 +311,11 @@ class Client:
         """Log a plain-water entry. Adds to the day's hydration regime."""
         if milliliters <= 0:
             raise ValueError("milliliters must be > 0")
+        # Stock-food entries use ``guidFoodstuff`` (not ``guid``) - upstream
+        # rejects the request with code 741 otherwise. ``guid`` is reserved
+        # for custom-food adds (where it carries the literal string "0").
         payload = {
-            "guid": WATER_FOODSTUFF_GUID,
+            "guidFoodstuff": WATER_FOODSTUFF_GUID,
             "diaryTimeGuid": MealTime.BREAKFAST.value,  # slot doesn't matter for water totals
             "date": _format_date(date),
             "multiplier": milliliters,

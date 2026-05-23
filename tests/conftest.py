@@ -74,4 +74,8 @@ def client(session_cache: SessionCache, stub_login: str) -> Client:
         password=stub_login,
         session_cache=session_cache,
         timeout=(1.0, 1.0),
+        # Disable throttling in tests; real-life pacing is verified in
+        # test_client.py::TestThrottle.
+        min_request_interval=0.0,
+        request_jitter=0.0,
     )

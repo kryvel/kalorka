@@ -101,6 +101,17 @@ Activities synced from Apple Health (when the kaloricketabulky iOS app is connec
 on `diary.activities`. There is no write endpoint for activities - the upstream service only
 accepts them from its mobile app.
 
+### Pacing
+
+The client throttles consecutive API calls by 5-10 seconds (uniform jitter) so a batch of
+writes - logging several meals + water + weight in a row - looks like a human clicking
+through the UI rather than a script. The first call in a process pays no delay. Override
+when you have a good reason:
+
+```python
+client = Client(min_request_interval=0.0, request_jitter=0.0)  # one-shot reads, full speed
+```
+
 See [`docs/api.md`](docs/api.md) for the full client reference and the wire format.
 
 ## Claude Code skill

@@ -39,6 +39,8 @@ Client(
     user_agent: str = "...",
     session: requests.Session | None = None,
     session_cache: SessionCache | None = None,
+    min_request_interval: float = 5.0,  # seconds between API calls
+    request_jitter: float = 5.0,        # plus uniform [0, jitter) on top
 )
 ```
 

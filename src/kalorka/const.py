@@ -19,3 +19,12 @@ SESSION_TTL_SECONDS = 3 * 24 * 3600
 
 # HTTP timeouts (connect, read).
 DEFAULT_TIMEOUT = (5.0, 15.0)
+
+# Throttle between consecutive API requests, in seconds. A small base delay
+# plus uniform jitter spaces calls out enough that a flurry of writes (logging
+# several meals, water, weight in succession) looks like a human clicking
+# through the UI rather than a script. The upstream has been observed to
+# choke when fed >5 writes within a minute - see commit notes for details.
+# Override per-Client to disable in tests or speed up bulk reads.
+MIN_REQUEST_INTERVAL = 5.0
+REQUEST_JITTER = 5.0
