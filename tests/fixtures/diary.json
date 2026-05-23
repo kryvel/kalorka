@@ -1,0 +1,55 @@
+{
+  "requestId": null,
+  "code": 0,
+  "message": null,
+  "data": {
+    "date": 1779487200000,
+    "energyUnit": "kcal",
+    "times": [
+      {
+        "id": "1",
+        "title": "Snídaně",
+        "foodstuff": [],
+        "energyTotal": "0"
+      },
+      {
+        "id": "3",
+        "title": "Oběd",
+        "foodstuff": [
+          {
+            "id": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1",
+            "title": "Test Bowl",
+            "energy": "420",
+            "energyUnit": "kcal",
+            "protein": 32,
+            "carbohydrate": 28,
+            "fat": 18,
+            "fiber": null,
+            "sugar": null,
+            "salt": 1.2
+          },
+          {
+            "id": "a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2",
+            "title": "Test Side Salad",
+            "energy": "110",
+            "energyUnit": "kcal",
+            "protein": null,
+            "carbohydrate": 10,
+            "fat": 7,
+            "sugar": 4
+          }
+        ],
+        "energyTotal": "530"
+      },
+      {"id": "5", "title": "Večeře", "foodstuff": [], "energyTotal": null}
+    ],
+    "activities": [
+      {
+        "id": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+        "title": "Sample workout",
+        "energy": "240",
+        "energyUnit": "kcal"
+      }
+    ]
+  }
+}

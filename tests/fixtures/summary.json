@@ -1,0 +1,19 @@
+{
+  "requestId": null,
+  "code": 0,
+  "data": {
+    "items": [
+      {"code": "total", "actual": "530", "goal": "1 924", "unit": "kcal", "percent": 28},
+      {"title": "Pitný režim", "actual": "0,25", "goal": "2,95", "unit": "l", "percent": 8},
+      {"title": "Cílová hmotnost", "actual": "73,8", "goal": "72", "unit": "kg", "percent": 102}
+    ],
+    "itemsDynamic": [
+      [
+        {"code": "protein", "titleShort": "Bílkoviny", "actual": "24", "goal": "145", "unit": "g", "percent": 16},
+        {"code": "carbohydrate", "titleShort": "Sacharidy", "actual": "49", "goal": "183", "unit": "g", "percent": 26},
+        {"code": "fat", "titleShort": "Tuky", "actual": "23", "goal": "67,3", "unit": "g", "percent": 34},
+        {"code": "fiber", "titleShort": "Vláknina", "actual": "0", "goal": "30", "unit": "g", "percent": 0}
+      ]
+    ]
+  }
+}

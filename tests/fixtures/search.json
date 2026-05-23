@@ -1,0 +1,18 @@
+[
+  {
+    "id": "6aaf9a5ce85e47339147e8ad00331b6a",
+    "title": "Sample Branded Omelette",
+    "energy": 212,
+    "energyUnit": "kcal",
+    "unit": "g",
+    "brandName": "Sample Brand"
+  },
+  {
+    "id": "b54cbec46ed9448cb882af24b2afa3cf",
+    "title": "Sample Generic Frittata",
+    "energy": 260,
+    "energyUnit": "kcal",
+    "unit": "g",
+    "brandName": null
+  }
+]
